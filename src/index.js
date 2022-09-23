@@ -10,6 +10,19 @@ const customers = [];
 // id - uuid (install pelo terminal digite>> yarn add uuid)
 // statement []
 // 
+// Middlewares
+function verifyIfExistAccountCPF(request, response, next){
+    const { cpf } = request.headers;
+    // customer = cliente
+    const customer = customers.find(customer => customer.cpf === cpf);
+    if(!customer){
+        return response.status(400).json({ error: "Cliente não encontrado / customer not found"}); // customer not found
+    }
+    // deixando visivel o customer, para todos os caras que recebem o rmiddleware.
+    request.customer = customer;
+
+    return next();
+};
 
 // rotas
 app.post("/account", (request, response) => {
@@ -19,7 +32,7 @@ app.post("/account", (request, response) => {
         (customer) => customer.cpf === cpf
     );
     if (customerAlreadyExists) {
-        return response.status(400).json({ error: "Cliente já existe" }); //Customer Already exists
+        return response.status(400).json({ error: "Cliente já existe - customer already exists" }); //Customer Already exists
     }
 
     customers.push({
@@ -31,12 +44,18 @@ app.post("/account", (request, response) => {
     return response.status(201).send();
 }); // create = criar -- account = conta
 
-app.get("/bankStatement/:cpf", (request, response) => {
-    const { cpf } = request.params;
-    // customer = cliente
-    const customer = customers.find(customer => customer.cpf === cpf);
-    return response.json(customer.statement)
-}); // search = buscar -- bank statement = extrato bancário |
+// app.use(verifyIfExistAccountCPF); // tudas as rotas abaixo usa ele
+app.get("/bankStatement", verifyIfExistAccountCPF, (request, response) => {  
+    // só essa rota usa ele. caso queira todas pode tirar daqui.
+
+    /** recuperando o customer */  const { customer} = /** de onde?? */ request
+
+    /** retornando o resultado desta funcao */return response.json(customer.statement);
+
+}); // search = buscar -- bank statement = extrato bancário
+
+
+
 
 // portas
 const port = 3333
