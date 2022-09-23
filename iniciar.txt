@@ -1,0 +1,4 @@
+Digite no terminal:
+
+>> yarn dev
+
